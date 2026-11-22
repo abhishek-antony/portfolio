@@ -365,7 +365,22 @@
     .orb3 { background: rgba(245,184,255,0.11); }
     nav { background: rgba(9,15,36,0.82); }
     #skills, #experience, #contact { background: rgba(255,255,255,0.02); }
-  </style>
+  
+  /* ===== Smaller hero name · larger experience bullets ===== */
+  .hero-name { font-size: clamp(2.4rem, 5vw, 4.6rem); line-height: 1; }
+  .timeline-points li { font-size: 1rem; line-height: 1.85; padding-left: 22px; }
+  @media (max-width: 900px) { .hero-name { font-size: clamp(2.3rem, 9vw, 3.6rem); } }
+  @media (max-width: 768px) { .timeline-points li { font-size: 0.95rem; } }
+
+  /* ===== Fix: contact heading cut off ("something." lost its last letters) ===== */
+  .contact-inner { max-width: 760px; }
+  .contact-big { font-size: clamp(2.1rem, 5.2vw, 3.7rem); line-height: 1.12; padding: 0 0.08em 0.14em; overflow-wrap: break-word; }
+
+  /* ===== Nav: highlight the section currently in view ===== */
+  .nav-links a { transition: color 0.3s, text-shadow 0.3s; }
+  .nav-links a.active { color: var(--accent); text-shadow: 0 0 14px rgba(34,229,255,0.55); }
+  .nav-links a.active::after { transform: scaleX(1); height: 2px; box-shadow: 0 0 10px rgba(34,229,255,0.7); }
+</style>
 </head>
 <body>
 <div id="bg-grid"></div>
@@ -870,6 +885,31 @@
     document.getElementById('modal-close').addEventListener('click', closeModal);
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  })();
+  /* ====== Nav scroll-spy: highlight the link of the section in view ====== */
+  (function () {
+    const links = [...document.querySelectorAll('.nav-links a[href^="#"]')];
+    const items = links.map(a => ({ a, sec: document.querySelector(a.getAttribute('href')) })).filter(x => x.sec);
+    if (!items.length) return;
+    let ticking = false;
+
+    function update() {
+      ticking = false;
+      const probe = window.innerHeight * 0.35;           // the "reading line" near the upper third
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      let current = null;
+      for (const it of items) {
+        if (it.sec.getBoundingClientRect().top <= probe) current = it;
+      }
+      if (atBottom) current = items[items.length - 1];
+      items.forEach(it => it.a.classList.toggle('active', it === current));
+    }
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    window.addEventListener('load', update);
+    update();
   })();
 </script>
 </body>
